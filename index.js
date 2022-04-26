@@ -12,6 +12,7 @@ function floorToMul(num, mul) {
 
 let carrotsprite = newImage('images/carrot.png')
 let carrots = []
+let wallsprite = newImage('images/wall.png')
 let walls = []
 
 const player = {
@@ -47,6 +48,10 @@ document.onclick = () => {
             return
         }
     }
+    for (let carrot of carrots)
+        if (x == carrot.x && y == carrot.y) {
+            return
+        }
     walls.push({
         x: x,
         y: y,
@@ -59,7 +64,7 @@ function randomCarrot() {
         colliding = false
         x = floorToMul(Math.random() * canvas.width, tileSize)
         y = floorToMul(Math.random() * canvas.height, tileSize)
-        for (let carrot of carrots) {
+        for (let carrot of carrots.concat(walls, [player])) {
             if (carrot.x == x && carrot.y == y) {
                 colliding = true
                 break
@@ -148,7 +153,7 @@ function draw() {
         ctx.drawImage(carrotsprite, carrot.x, carrot.y, tileSize, tileSize)
     }
     for (let wall of walls) {
-        ctx.fillRect(wall.x, wall.y, tileSize, tileSize)
+        ctx.drawImage(wallsprite, wall.x, wall.y, tileSize, tileSize)
     }
     ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
 
