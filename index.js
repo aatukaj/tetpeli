@@ -12,6 +12,7 @@ function floorToMul(num, mul) {
 
 let carrotsprite = newImage('images/carrot.png')
 let carrots = []
+let walls = []
 
 const player = {
     x: 0,
@@ -40,13 +41,13 @@ canvas.onmousemove = event => {
 document.onclick = () => {
     x = floorToMul(mouse.x, tileSize)
     y = floorToMul(mouse.y, tileSize)
-    for (let carrot of carrots) {
-        if (x == carrot.x && y == carrot.y) {
-            carrots.splice(carrots.indexOf(carrot), 1)
+    for (let wall of walls) {
+        if (x == wall.x && y == wall.y) {
+            walls.splice(walls.indexOf(wall), 1)
             return
         }
     }
-    carrots.push({
+    walls.push({
         x: x,
         y: y,
     })
@@ -76,26 +77,35 @@ for (let i = 0; i < 10; i++) {
 
 document.onkeydown = event => {
     if (event.repeat) { return }
+    let x = player.tx
+    let y = player.ty
     if (player.x == player.tx) {
         if (event.key == "ArrowUp" && player.ty > 0) {
-            player.ty -= tileSize
+            y -= tileSize
             player.sprite = player.sprites.up
 
         } else if (event.key == "ArrowDown" && player.ty < canvas.height - tileSize) {
-            player.ty += tileSize
+            y += tileSize
             player.sprite = player.sprites.down
         }
     }
     if (player.y == player.ty) {
         if (event.key == "ArrowRight" && player.tx < canvas.width - tileSize) {
-            player.tx += tileSize
+            x += tileSize
             player.sprite = player.sprites.right
 
         } else if (event.key == "ArrowLeft" && player.tx > 0) {
-            player.tx -= tileSize
+            x -= tileSize
             player.sprite = player.sprites.left
         }
     }
+
+    for (let wall of walls) {
+        if (wall.x == x && wall.y == y) { return }
+    }
+    player.tx = x
+    player.ty = y
+
     if (event.key == "f") {
         randomCarrot()
     }
@@ -119,6 +129,7 @@ setInterval(() => {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+    ctx.fillStyle = "darkgreen"
     ctx.strokeStyle = "gray"
     ctx.setLineDash([4, 2])
     ctx.beginPath()
@@ -135,6 +146,9 @@ function draw() {
 
     for (let carrot of carrots) {
         ctx.drawImage(carrotsprite, carrot.x, carrot.y, tileSize, tileSize)
+    }
+    for (let wall of walls) {
+        ctx.fillRect(wall.x, wall.y, tileSize, tileSize)
     }
     ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
 
