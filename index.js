@@ -27,7 +27,6 @@ const player = {
         right: newImage("images/rabbitright.png"),
     },
 }
-Object.freeze(player.sprites)
 player.sprite = player.sprites.up
 
 const mouse = {
@@ -39,7 +38,7 @@ canvas.onmousemove = event => {
     mouse.y = event.offsetY
 }
 
-document.onclick = () => {
+canvas.onclick = () => {
     x = floorToMul(mouse.x, tileSize)
     y = floorToMul(mouse.y, tileSize)
     for (let wall of walls) {
@@ -81,40 +80,48 @@ for (let i = 0; i < 10; i++) {
 }
 
 document.onkeydown = event => {
+    if (event.key == "f") {
+        randomCarrot()
+    }
     if (event.repeat) { return }
+
+    if (event.key == "ArrowUp") {
+        handleMovement("up")
+    } else if (event.key == "ArrowDown") {
+        handleMovement("down")
+    } else if (event.key == "ArrowLeft") {
+        handleMovement("left")
+    } else if (event.key == "ArrowRight") {
+        handleMovement("right")
+    }
+}
+
+function handleMovement(dir) {
     let x = player.tx
     let y = player.ty
-    if (player.x == player.tx) {
-        if (event.key == "ArrowUp" && player.ty > 0) {
+    player.sprite = player.sprites[dir]
+
+    if (Math.round(player.x) == player.tx) {
+        if (dir == "up" && player.ty > 0) {
             y -= tileSize
-            player.sprite = player.sprites.up
-
-        } else if (event.key == "ArrowDown" && player.ty < canvas.height - tileSize) {
+        } else if (dir == "down" && player.ty < canvas.height - tileSize) {
             y += tileSize
-            player.sprite = player.sprites.down
         }
     }
-    if (player.y == player.ty) {
-        if (event.key == "ArrowRight" && player.tx < canvas.width - tileSize) {
+    if (Math.round(player.y) == player.ty) {
+        if (dir == "right" && player.tx < canvas.width - tileSize) {
             x += tileSize
-            player.sprite = player.sprites.right
-
-        } else if (event.key == "ArrowLeft" && player.tx > 0) {
+        } else if (dir == "left" && player.tx > 0) {
             x -= tileSize
-            player.sprite = player.sprites.left
         }
     }
-
     for (let wall of walls) {
         if (wall.x == x && wall.y == y) { return }
     }
     player.tx = x
     player.ty = y
-
-    if (event.key == "f") {
-        randomCarrot()
-    }
 }
+
 
 setInterval(() => {
     for (let carrot of carrots) {
@@ -123,18 +130,38 @@ setInterval(() => {
             break
         }
     }
-    if (player.x != player.tx) {
-        player.x += Math.sign(player.tx - player.x) * (tileSize / 25)
+    if (Math.round(player.x) != player.tx) {
+        player.x += Math.sign(player.tx - player.x) * (tileSize / 50)
     }
-    if (player.y != player.ty) {
-        player.y += Math.sign(player.ty - player.y) * (tileSize / 25)
+    if (Math.round(player.y) != player.ty) {
+        player.y += Math.sign(player.ty - player.y) * (tileSize / 50)
     }
 })
+
+let moveTimer;
+function beginMoving(text) {
+    clearInterval(moveTimer)
+    player.x = 0
+    player.y = 0
+    player.tx = 0
+    player.ty = 0
+    let moves = text.split("\n");
+    moves.length = moves.length - 1
+    moveTimer = setInterval(() => {
+        if (Math.round(player.x) == player.tx && Math.round(player.y) == player.ty) {
+            move = moves.shift()
+            handleMovement(move)
+        }
+        console.log(moves)
+        if (moves.length == 0) {
+            clearInterval(moveTimer)
+        }
+    }, 500)
+}
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    ctx.fillStyle = "darkgreen"
     ctx.strokeStyle = "gray"
     ctx.setLineDash([4, 2])
     ctx.beginPath()
