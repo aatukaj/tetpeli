@@ -1,7 +1,6 @@
 
 let output = ""
 function outf(text) {
-    var mypre = document.getElementById("output");
     output += text;
 }
 
