@@ -101,14 +101,14 @@ function handleMovement(dir) {
     let y = player.ty
     player.sprite = player.sprites[dir]
 
-    if (Math.round(player.x) == player.tx) {
+    if (player.x == player.tx) {
         if (dir == "up" && player.ty > 0) {
             y -= tileSize
         } else if (dir == "down" && player.ty < canvas.height - tileSize) {
             y += tileSize
         }
     }
-    if (Math.round(player.y) == player.ty) {
+    if (player.y == player.ty) {
         if (dir == "right" && player.tx < canvas.width - tileSize) {
             x += tileSize
         } else if (dir == "left" && player.tx > 0) {
@@ -124,17 +124,22 @@ function handleMovement(dir) {
 
 
 setInterval(() => {
+    if (Math.round(player.x) == player.tx) {
+        player.x = player.tx
+    } else {
+        player.x += Math.sign(player.tx - player.x) * (tileSize / 50)
+    }
+
+    if (Math.round(player.y) == player.ty) {
+        player.y = player.ty
+    } else {
+        player.y += Math.sign(player.ty - player.y) * (tileSize / 50)
+    }
     for (let carrot of carrots) {
-        if (carrot.x == Math.round(player.x) && carrot.y === Math.round(player.y)) {
+        if (carrot.x == player.x && carrot.y === player.y) {
             carrots.splice(carrots.indexOf(carrot), 1)
             break
         }
-    }
-    if (Math.round(player.x) != player.tx) {
-        player.x += Math.sign(player.tx - player.x) * (tileSize / 50)
-    }
-    if (Math.round(player.y) != player.ty) {
-        player.y += Math.sign(player.ty - player.y) * (tileSize / 50)
     }
 })
 
@@ -148,7 +153,7 @@ function beginMoving(text) {
     let moves = text.split("\n");
     moves.length = moves.length - 1
     moveTimer = setInterval(() => {
-        if (Math.round(player.x) == player.tx && Math.round(player.y) == player.ty) {
+        if (player.x == player.tx && player.y == player.ty) {
             move = moves.shift()
             handleMovement(move)
         }
