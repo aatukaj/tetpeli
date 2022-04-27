@@ -15,6 +15,7 @@ let carrots = []
 let wallsprite = newImage('images/wall.png')
 let walls = []
 
+
 const player = {
     x: 0,
     y: 0,
