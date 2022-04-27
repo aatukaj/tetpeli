@@ -12,7 +12,7 @@ function builtinRead(x) {
 }
 
 function runit() {
-    var prog = editor.getValue();
+    var prog = "move = print\n"+editor.getValue();
     output = ""
     Sk.configure({
         output: outf,
