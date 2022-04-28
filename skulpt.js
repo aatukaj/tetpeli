@@ -14,7 +14,7 @@ function runit() {
 def move(x):
     print("move:"+x)
 def say(x):
-    print("say:"+x)
+    print("say:"+str(x))
     \n` + editor.getValue();
     Sk.configure({
         output: outf,

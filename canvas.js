@@ -14,7 +14,6 @@ let carrotsprite = newImage("images/carrot.png")
 let carrots = []
 let wallsprite = newImage("images/wall.png")
 let walls = []
-pathsprite = newImage("images/")
 let path = []
 let cmds = []
 
@@ -39,6 +38,8 @@ const player = {
     },
     isMoving: true,
     points: 0,
+    text: "",
+    speaking: false,
 }
 player.sprite = player.sprites.up
 
@@ -59,16 +60,13 @@ canvas.onmousemove = event => {
 canvas.onclick = () => {
     let x = floorToMul(mouse.x, tileSize)
     let y = floorToMul(mouse.y, tileSize)
-    for (let wall of walls) {
-        if (x == wall.x && y == wall.y) {
-            walls.splice(walls.indexOf(wall), 1)
-            return
-        }
+
+    const collision = getCollision({ x: x, y: y }, walls)
+    if (collision) {
+        walls.splice(walls.indexOf(collision), 1)
+        return
     }
-    for (let carrot of carrots)
-        if (x == carrot.x && y == carrot.y) {
-            return
-        }
+    if (getCollision({ x: x, y: y }, carrots)) { return }
     walls.push({
         x: x,
         y: y,
@@ -192,12 +190,14 @@ function addCmd(cmd) {
     console.log(cmds)
 }
 
+let speechTimeout
 function speech(text) {
-    bubble.draw = true
-    bubble.text = text
-    setTimeout(() => {
-        bubble.draw = false
-        bubble.text = false
+    clearTimeout(speechTimeout);
+    player.speaking = true
+    player.text = text
+    speechTimeout = setTimeout(() => {
+        player.speaking = false
+        player.text = false
     }, 2000)
 }
 
@@ -206,7 +206,7 @@ function reset() {
     player.y = 0
     player.tx = 0
     player.ty = 0
-    cmds=[]
+    cmds = []
 }
 
 function draw() {
@@ -215,7 +215,7 @@ function draw() {
     ctx.strokeStyle = "gray"
     ctx.setLineDash([4, 2])
     ctx.beginPath()
-    ctx.font = '48px serif';
+
 
     for (let i = tileSize; i < canvas.width; i += tileSize) {
         ctx.moveTo(i, 0)
@@ -242,13 +242,22 @@ function draw() {
         ctx.drawImage(wallsprite, wall.x, wall.y, tileSize, tileSize)
     }
 
-
+    ctx.setLineDash([1, 1])
     ctx.fillStyle = "white"
+    ctx.font = '48px arial';
     ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
     ctx.fillText(player.points, 10, canvas.height - 10);
 
-    if (bubble.draw) {
-        ctx.fillText(bubble.text, player.x, player.y);
+    if (player.speaking) {
+        ctx.font = '24px arial';
+        const textSize =ctx.measureText(player.text)
+        console.log(textSize)
+        ctx.fillStyle = "black"
+        ctx.fillRect(player.x-2, player.y-26, textSize.width+4, 24*1.286+4)
+        ctx.fillStyle = "white"
+        ctx.fillRect(player.x, player.y-24, textSize.width, 24*1.286)
+        ctx.fillStyle = "black"
+        ctx.fillText(player.text, player.x, player.y);
     }
     requestAnimationFrame(draw)
 }
