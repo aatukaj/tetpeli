@@ -10,11 +10,20 @@ function floorToMul(num, mul) {
     return Math.floor(num / mul) * mul
 }
 
-let carrotsprite = newImage('images/carrot.png')
+let carrotsprite = newImage("images/carrot.png")
 let carrots = []
-let wallsprite = newImage('images/wall.png')
+let wallsprite = newImage("images/wall.png")
 let walls = []
+pathsprite = newImage("images/")
+let path = []
 
+function getCollision(object, objects) {
+    for (let o of objects) {
+        if (o.x == object.x && o.y == object.y) {
+            return o
+        }
+    }
+}
 
 const player = {
     x: 0,
@@ -27,6 +36,8 @@ const player = {
         left: newImage("images/rabbitleft.png"),
         right: newImage("images/rabbitright.png"),
     },
+    isMoving: true,
+    points: 0,
 }
 player.sprite = player.sprites.up
 
@@ -34,14 +45,19 @@ const mouse = {
     x: 0,
     y: 0
 }
+
+const bubble = {
+    text:"",
+    draw:false,
+}
 canvas.onmousemove = event => {
     mouse.x = event.offsetX
     mouse.y = event.offsetY
 }
 
 canvas.onclick = () => {
-    x = floorToMul(mouse.x, tileSize)
-    y = floorToMul(mouse.y, tileSize)
+    let x = floorToMul(mouse.x, tileSize)
+    let y = floorToMul(mouse.y, tileSize)
     for (let wall of walls) {
         if (x == wall.x && y == wall.y) {
             walls.splice(walls.indexOf(wall), 1)
@@ -64,11 +80,10 @@ function randomCarrot() {
         colliding = false
         x = floorToMul(Math.random() * canvas.width, tileSize)
         y = floorToMul(Math.random() * canvas.height, tileSize)
-        for (let carrot of carrots.concat(walls, [player])) {
-            if (carrot.x == x && carrot.y == y) {
-                colliding = true
-                break
-            }
+        const result = getCollision({ x: x, y: y }, carrots.concat(walls, [player]))
+        if (result) {
+            colliding = true
+            break
         }
     }
     carrots.push({
@@ -76,6 +91,8 @@ function randomCarrot() {
         y: y
     })
 }
+
+
 for (let i = 0; i < 10; i++) {
     randomCarrot()
 }
@@ -116,33 +133,52 @@ function handleMovement(dir) {
             x -= tileSize
         }
     }
-    for (let wall of walls) {
-        if (wall.x == x && wall.y == y) { return }
-    }
+    if (getCollision({ x: x, y: y }, walls)) { return }
+
     player.tx = x
     player.ty = y
+    player.isMoving = true
 }
 
 
 setInterval(() => {
-    if (Math.round(player.x) == player.tx) {
-        player.x = player.tx
-    } else {
-        player.x += Math.sign(player.tx - player.x) * (tileSize / 50)
-    }
+    if (player.isMoving) {
+        if (Math.round(player.x) == player.tx) {
+            player.x = player.tx
+        } else {
+            player.x += Math.sign(player.tx - player.x) * (tileSize / 50)
+        }
 
-    if (Math.round(player.y) == player.ty) {
-        player.y = player.ty
-    } else {
-        player.y += Math.sign(player.ty - player.y) * (tileSize / 50)
-    }
-    for (let carrot of carrots) {
-        if (carrot.x == player.x && carrot.y === player.y) {
-            carrots.splice(carrots.indexOf(carrot), 1)
-            break
+        if (Math.round(player.y) == player.ty) {
+            player.y = player.ty
+        } else {
+            player.y += Math.sign(player.ty - player.y) * (tileSize / 50)
+        }
+        if (player.y == player.ty && player.x == player.tx) {
+            player.isMoving = false
+            player.x = player.tx
+            path.push({
+                x: player.x,
+                y: player.y,
+            })
+        }
+        const collision = getCollision(player, carrots)
+        if (collision) {
+            carrots.splice(carrots.indexOf(collision), 1)
+            player.points += 1
         }
     }
-})
+}
+)
+
+function speech(text) {
+    bubble.draw=true
+    bubble.text=text
+    setTimeout(() => {
+        bubble.draw=false
+        bubble.text=false
+    }, 2000)
+}
 
 let moveTimer;
 function beginMoving(text) {
@@ -151,15 +187,24 @@ function beginMoving(text) {
     player.y = 0
     player.tx = 0
     player.ty = 0
-    let moves = text.split("\n");
-    moves.length = moves.length - 1
+    const commands = text.split("\n");
+    commands.length = commands.length - 1
+
     moveTimer = setInterval(() => {
-        if (player.x == player.tx && player.y == player.ty) {
-            move = moves.shift()
-            handleMovement(move)
+        const type = commands[0].split(":")[0]
+        const arg = commands[0].split(":")[1]
+        if (!player.isMoving) {
+            commands.shift()
+            if (type == "move") {              
+                handleMovement(arg)
+            }
+            if (type == "say") {
+                speech(arg)
+            }
+
         }
-        console.log(moves)
-        if (moves.length == 0) {
+        console.log(commands)
+        if (commands.length == 0) {
             clearInterval(moveTimer)
         }
     }, 500)
@@ -171,6 +216,7 @@ function draw() {
     ctx.strokeStyle = "gray"
     ctx.setLineDash([4, 2])
     ctx.beginPath()
+    ctx.font = '48px serif';
 
     for (let i = tileSize; i < canvas.width; i += tileSize) {
         ctx.moveTo(i, 0)
@@ -182,14 +228,29 @@ function draw() {
     }
     ctx.stroke()
 
+    ctx.setLineDash([0])
+    ctx.fillStyle = "lightgray"
+    for (let part of path) {
+        ctx.beginPath()
+        ctx.arc(part.x + tileSize / 2, part.y + tileSize / 2, tileSize / 4, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.stroke()
+    }
     for (let carrot of carrots) {
         ctx.drawImage(carrotsprite, carrot.x, carrot.y, tileSize, tileSize)
     }
     for (let wall of walls) {
         ctx.drawImage(wallsprite, wall.x, wall.y, tileSize, tileSize)
     }
-    ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
 
+
+    ctx.fillStyle = "white"
+    ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
+    ctx.fillText(player.points, 10, canvas.height - 10);
+
+    if (bubble.draw) {
+        ctx.fillText(bubble.text, player.x, player.y);
+    }
     requestAnimationFrame(draw)
 }
 

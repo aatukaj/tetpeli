@@ -11,7 +11,13 @@ function builtinRead(x) {
 }
 
 function runit() {
-    var prog = "move = print\n"+editor.getValue();
+    var prog = `
+def move(x):
+    print("move:"+x)
+def say(x):
+    print("say:"+x)
+    \n` + editor.getValue();
+    console.log(prog)
     output = ""
     Sk.configure({
         output: outf,
