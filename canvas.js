@@ -1,5 +1,6 @@
-ctx = canvas.getContext("2d")
-tileSize = 50
+"use strict"
+const ctx = canvas.getContext("2d")
+const tileSize = 50
 
 function newImage(src) {
     let img = new Image()
@@ -10,9 +11,9 @@ function floorToMul(num, mul) {
     return Math.floor(num / mul) * mul
 }
 
-let carrotsprite = newImage("images/carrot.png")
+const carrotsprite = newImage("images/carrot.png")
 let carrots = []
-let wallsprite = newImage("images/wall.png")
+const wallsprite = newImage("images/wall.png")
 let walls = []
 let path = []
 let cmds = []
@@ -48,10 +49,6 @@ const mouse = {
     y: 0
 }
 
-const bubble = {
-    text: "",
-    draw: false,
-}
 canvas.onmousemove = event => {
     mouse.x = event.offsetX
     mouse.y = event.offsetY
@@ -161,11 +158,11 @@ setInterval(() => {
                 y: player.y,
             })
         }
-        const collision = getCollision(player, carrots)
-        if (collision) {
-            carrots.splice(carrots.indexOf(collision), 1)
-            player.points += 1
-        }
+    }
+    const collision = getCollision(player, carrots)
+    if (collision) {
+        carrots.splice(carrots.indexOf(collision), 1)
+        player.points += 1
     }
 }
 )
@@ -245,19 +242,19 @@ function draw() {
     ctx.setLineDash([1, 1])
     ctx.fillStyle = "white"
     ctx.font = '48px arial';
-    ctx.textAlign="right"
+    ctx.textAlign = "right"
     ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
-    ctx.fillText(player.points+ "/10", 150, canvas.height - 10);
+    ctx.fillText(player.points + "/10", 125, canvas.height - 10);
 
     if (player.speaking) {
-        ctx.textAlign="left"
+        ctx.textAlign = "left"
         ctx.font = '24px arial';
-        const textSize =ctx.measureText(player.text)
+        const textSize = ctx.measureText(player.text)
         console.log(textSize)
         ctx.fillStyle = "black"
-        ctx.fillRect(player.x-2, player.y-26, textSize.width+4, 24*1.286+4)
+        ctx.fillRect(player.x - 2, player.y - 26, textSize.width + 4, 24 * 1.286 + 4)
         ctx.fillStyle = "white"
-        ctx.fillRect(player.x, player.y-24, textSize.width, 24*1.286)
+        ctx.fillRect(player.x, player.y - 24, textSize.width, 24 * 1.286)
         ctx.fillStyle = "black"
         ctx.fillText(player.text, player.x, player.y);
     }
