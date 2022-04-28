@@ -92,7 +92,7 @@ function randomCarrot() {
 }
 
 
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 40; i++) {
     randomCarrot()
 }
 
@@ -245,10 +245,12 @@ function draw() {
     ctx.setLineDash([1, 1])
     ctx.fillStyle = "white"
     ctx.font = '48px arial';
+    ctx.textAlign="right"
     ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
-    ctx.fillText(player.points, 10, canvas.height - 10);
+    ctx.fillText(player.points+ "/10", 150, canvas.height - 10);
 
     if (player.speaking) {
+        ctx.textAlign="left"
         ctx.font = '24px arial';
         const textSize =ctx.measureText(player.text)
         console.log(textSize)
