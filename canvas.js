@@ -16,6 +16,7 @@ let wallsprite = newImage("images/wall.png")
 let walls = []
 pathsprite = newImage("images/")
 let path = []
+let cmds = []
 
 function getCollision(object, objects) {
     for (let o of objects) {
@@ -47,8 +48,8 @@ const mouse = {
 }
 
 const bubble = {
-    text:"",
-    draw:false,
+    text: "",
+    draw: false,
 }
 canvas.onmousemove = event => {
     mouse.x = event.offsetX
@@ -170,44 +171,42 @@ setInterval(() => {
     }
 }
 )
-
-function speech(text) {
-    bubble.draw=true
-    bubble.text=text
-    setTimeout(() => {
-        bubble.draw=false
-        bubble.text=false
-    }, 2000)
-}
-
-let moveTimer;
-function beginMoving(text) {
-    clearInterval(moveTimer)
-    player.x = 0
-    player.y = 0
-    player.tx = 0
-    player.ty = 0
-    const commands = text.split("\n");
-    commands.length = commands.length - 1
-
-    moveTimer = setInterval(() => {
-        const type = commands[0].split(":")[0]
-        const arg = commands[0].split(":")[1]
+setInterval(() => {
+    if (cmds.length != 0) {
+        const type = cmds[0].split(":")[0]
+        const arg = cmds[0].split(":")[1]
         if (!player.isMoving) {
-            commands.shift()
-            if (type == "move") {              
+            cmds.shift()
+            if (type == "move") {
                 handleMovement(arg)
             }
             if (type == "say") {
                 speech(arg)
             }
+        }
+    }
+}, 500)
 
-        }
-        console.log(commands)
-        if (commands.length == 0) {
-            clearInterval(moveTimer)
-        }
-    }, 500)
+function addCmd(cmd) {
+    cmds.push(cmd)
+    console.log(cmds)
+}
+
+function speech(text) {
+    bubble.draw = true
+    bubble.text = text
+    setTimeout(() => {
+        bubble.draw = false
+        bubble.text = false
+    }, 2000)
+}
+
+function reset() {
+    player.x = 0
+    player.y = 0
+    player.tx = 0
+    player.ty = 0
+    cmds=[]
 }
 
 function draw() {

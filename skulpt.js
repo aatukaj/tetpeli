@@ -1,7 +1,6 @@
 
-let output = ""
 function outf(text) {
-    output += text;
+    addCmd(text.replace("\n", ""))
 }
 
 function builtinRead(x) {
@@ -17,8 +16,6 @@ def move(x):
 def say(x):
     print("say:"+x)
     \n` + editor.getValue();
-    console.log(prog)
-    output = ""
     Sk.configure({
         output: outf,
         read: builtinRead
@@ -28,7 +25,6 @@ def say(x):
     });
     myPromise.then(function (mod) {
         console.log('success');
-        beginMoving(output)
     },
         function (err) {
             console.log(err.toString());
