@@ -247,13 +247,15 @@ function draw() {
         ctx.drawImage(e.sprite, e.x, e.y, tileSize, tileSize)
         if (e.speaking) {
             ctx.textAlign = "left"
+            ctx.textBaseline = 'top';
             ctx.font = '24px arial';
             const textSize = ctx.measureText(e.text)
-            ctx.fillStyle = "black"
-            const padding = 4
-            ctx.fillRect(e.x - padding, e.y - 24 * 1286 - padding, textSize.width + padding * 2, 24 * 1.286 + padding * 2)
             ctx.fillStyle = "white"
-            ctx.fillRect(e.x, e.y - 24, textSize.width, 24 * 1.286)
+            const padding = 4
+            ctx.beginPath();
+            ctx.fillRect(e.x - padding, e.y - padding, textSize.width + padding*2, 24+padding*2)
+            ctx.fill();
+            ctx.stroke();
             ctx.fillStyle = "black"
             ctx.fillText(e.text, e.x, e.y);
         }
@@ -261,6 +263,7 @@ function draw() {
     ctx.fillStyle = "white"
     ctx.font = '48px arial';
     ctx.textAlign = "right"
+    ctx.textBaseline = "bottom";
     ctx.fillText(points + "/10", 125, canvas.height - 10);
 
 

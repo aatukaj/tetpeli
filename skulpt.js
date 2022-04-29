@@ -26,7 +26,8 @@ class Entity:
     \n` + editor.getValue();
     Sk.configure({
         output: outf,
-        read: builtinRead
+        read: builtinRead,
+        execLimit: 5000,
     });
     var myPromise = Sk.misceval.asyncToPromise(function () {
         return Sk.importMainWithBody("<stdin>", false, prog, true);
