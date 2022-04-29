@@ -18,6 +18,7 @@ let walls = []
 let path = []
 let cmds = []
 let points = 0
+
 function getCollision(object, objects) {
     for (let o of objects) {
         if (o.x == object.x && o.y == object.y) {
@@ -103,12 +104,14 @@ class Entity {
         this.sayTimeout = setTimeout(() => {
             this.speaking = false
             this.text = false
-        }, 2000)
+        }, 2500)
     }
 }
 
 let entities = {
+
 }
+
 const mouse = {
     x: 0,
     y: 0
@@ -224,6 +227,8 @@ function draw() {
 
     ctx.strokeStyle = "gray"
     ctx.setLineDash([4, 2])
+    ctx.lineWidth = 1
+
     ctx.beginPath()
 
 
@@ -252,7 +257,7 @@ function draw() {
     for (let wall of walls) {
         ctx.drawImage(wallsprite, wall.x, wall.y, tileSize, tileSize)
     }
-    ctx.setLineDash([1, 1])
+    ctx.setLineDash([])
 
     for (let e of Object.values(entities)) {
         ctx.drawImage(e.sprite, e.x, e.y, tileSize, tileSize)
@@ -260,15 +265,22 @@ function draw() {
             ctx.textAlign = "left"
             ctx.textBaseline = 'top';
             ctx.font = '24px arial';
-            const textSize = ctx.measureText(e.text)
+
+            ctx.strokeStyle = "black"
             ctx.fillStyle = "white"
+            ctx.lineWidth = 2
+
             const padding = 4
+            const x = e.x
+            const y = e.y-20
             ctx.beginPath();
-            ctx.fillRect(e.x - padding, e.y - padding, textSize.width + padding * 2, 24 + padding * 2)
+
+            ctx.rect(x-padding, y-padding, ctx.measureText(e.text).width + padding * 2, 24 + padding * 2)
             ctx.fill();
+
             ctx.stroke();
             ctx.fillStyle = "black"
-            ctx.fillText(e.text, e.x, e.y);
+            ctx.fillText(e.text, x, y);
         }
     }
     ctx.fillStyle = "white"
