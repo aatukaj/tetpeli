@@ -27,7 +27,7 @@ function getCollision(object, objects) {
 }
 
 class Entity {
-    constructor(x, y) {
+    constructor(x, y, sprites) {
         this.x = x
         this.y = y
         this.tx = x
@@ -35,12 +35,7 @@ class Entity {
         this.isMoving = true
         this.text = ""
         this.speaking = false
-        this.sprites = {
-            up: newImage("images/rabbitup.png"),
-            down: newImage("images/rabbitdown.png"),
-            left: newImage("images/rabbitleft.png"),
-            right: newImage("images/rabbitright.png"),
-        }
+        this.sprites = sprites
         this.sprite = this.sprites.up
     }
     update() {
@@ -191,7 +186,23 @@ setInterval(() => {
             entities[args[0]].say(args[1])
         }
         if (type == "addEntity") {
-            entities[args[0]] = new Entity(args[1] * tileSize, args[2] * tileSize)
+            let sprites
+            if (args[3] == "bunny") {
+                sprites = {
+                    up: newImage("images/rabbitup.png"),
+                    down: newImage("images/rabbitdown.png"),
+                    left: newImage("images/rabbitleft.png"),
+                    right: newImage("images/rabbitright.png"),
+                }
+            } else if (args[3] == "cat") {
+                sprites = {
+                    up: newImage("images/cat.png"),
+                    down: newImage("images/cat.png"),
+                    left: newImage("images/cat.png"),
+                    right: newImage("images/cat.png"),
+                }
+            }
+            entities[args[0]] = new Entity(args[1] * tileSize, args[2] * tileSize, sprites)
             console.log(entities)
         }
 
@@ -253,7 +264,7 @@ function draw() {
             ctx.fillStyle = "white"
             const padding = 4
             ctx.beginPath();
-            ctx.fillRect(e.x - padding, e.y - padding, textSize.width + padding*2, 24+padding*2)
+            ctx.fillRect(e.x - padding, e.y - padding, textSize.width + padding * 2, 24 + padding * 2)
             ctx.fill();
             ctx.stroke();
             ctx.fillStyle = "black"
