@@ -17,7 +17,7 @@ const wallsprite = newImage("images/wall.png")
 let walls = []
 let path = []
 let cmds = []
-
+let points = 0
 function getCollision(object, objects) {
     for (let o of objects) {
         if (o.x == object.x && o.y == object.y) {
@@ -26,24 +26,94 @@ function getCollision(object, objects) {
     }
 }
 
-const player = {
-    x: 0,
-    y: 0,
-    tx: 0,
-    ty: 0,
-    sprites: {
-        up: newImage("images/rabbitup.png"),
-        down: newImage("images/rabbitdown.png"),
-        left: newImage("images/rabbitleft.png"),
-        right: newImage("images/rabbitright.png"),
-    },
-    isMoving: true,
-    points: 0,
-    text: "",
-    speaking: false,
-}
-player.sprite = player.sprites.up
+class Entity {
+    constructor(x, y) {
+        this.x = x
+        this.y = y
+        this.tx = x
+        this.ty = x
+        this.isMoving = true
+        this.text = ""
+        this.speaking = false
+        this.sprites = {
+            up: newImage("images/rabbitup.png"),
+            down: newImage("images/rabbitdown.png"),
+            left: newImage("images/rabbitleft.png"),
+            right: newImage("images/rabbitright.png"),
+        }
+        this.sprite = this.sprites.up
+    }
+    update() {
+        if (this.isMoving) {
+            if (Math.round(this.x) == this.tx) {
+                this.x = this.tx
+            } else {
+                this.x += Math.sign(this.tx - this.x) * (tileSize / 50)
+            }
 
+            if (Math.round(this.y) == this.ty) {
+                this.y = this.ty
+            } else {
+                this.y += Math.sign(this.ty - this.y) * (tileSize / 50)
+            }
+            if (this.y == this.ty && this.x == this.tx) {
+                this.isMoving = false
+                path.push({
+                    x: this.x,
+                    y: this.y,
+                })
+            }
+        }
+        const collision = getCollision(this, carrots)
+        if (collision) {
+            carrots.splice(carrots.indexOf(collision), 1)
+            points += 1
+        }
+    }
+    handleMovement(dir) {
+        let x = this.tx
+        let y = this.ty
+        this.sprite = this.sprites[dir]
+
+        if (this.x == this.tx) {
+            if (dir == "up" && this.ty > 0) {
+                y -= tileSize
+            } else if (dir == "down" && this.ty < canvas.height - tileSize) {
+                y += tileSize
+            }
+        }
+        if (this.y == this.ty) {
+            if (dir == "right" && this.tx < canvas.width - tileSize) {
+                x += tileSize
+            } else if (dir == "left" && this.tx > 0) {
+                x -= tileSize
+            }
+        }
+        if (getCollision({
+            x: x,
+            y: y
+        }, walls)) {
+            return
+        }
+
+        this.tx = x
+        this.ty = y
+        this.isMoving = true
+    }
+
+    say(text) {
+        clearTimeout(this.sayTimeout);
+        this.speaking = true
+        this.text = text
+        this.sayTimeout = setTimeout(() => {
+            this.speaking = false
+            this.text = false
+        }, 2000)
+    }
+}
+
+let entities = {
+}
 const mouse = {
     x: 0,
     y: 0
@@ -57,18 +127,26 @@ canvas.onmousemove = event => {
 canvas.onclick = () => {
     let x = floorToMul(mouse.x, tileSize)
     let y = floorToMul(mouse.y, tileSize)
-
-    const collision = getCollision({ x: x, y: y }, walls)
+    const collision = getCollision({
+        x: x,
+        y: y
+    }, walls)
     if (collision) {
         walls.splice(walls.indexOf(collision), 1)
         return
     }
-    if (getCollision({ x: x, y: y }, carrots)) { return }
+    if (getCollision({
+        x: x,
+        y: y
+    }, carrots)) {
+        return
+    }
     walls.push({
         x: x,
         y: y,
     })
 }
+
 function randomCarrot() {
     let colliding = true
     let x, y
@@ -76,7 +154,10 @@ function randomCarrot() {
         colliding = false
         x = floorToMul(Math.random() * canvas.width, tileSize)
         y = floorToMul(Math.random() * canvas.height, tileSize)
-        const result = getCollision({ x: x, y: y }, carrots.concat(walls, [player]))
+        const result = getCollision({
+            x: x,
+            y: y
+        }, carrots.concat(walls, Object.values(entities)))
         if (result) {
             colliding = true
             break
@@ -88,122 +169,43 @@ function randomCarrot() {
     })
 }
 
-
 for (let i = 0; i < 40; i++) {
     randomCarrot()
 }
 
-document.onkeydown = event => {
-    if (event.key == "f") {
-        randomCarrot()
-    }
-    if (event.repeat) { return }
-
-    if (event.key == "ArrowUp") {
-        handleMovement("up")
-    } else if (event.key == "ArrowDown") {
-        handleMovement("down")
-    } else if (event.key == "ArrowLeft") {
-        handleMovement("left")
-    } else if (event.key == "ArrowRight") {
-        handleMovement("right")
-    }
-}
-
-function handleMovement(dir) {
-    let x = player.tx
-    let y = player.ty
-    player.sprite = player.sprites[dir]
-
-    if (player.x == player.tx) {
-        if (dir == "up" && player.ty > 0) {
-            y -= tileSize
-        } else if (dir == "down" && player.ty < canvas.height - tileSize) {
-            y += tileSize
-        }
-    }
-    if (player.y == player.ty) {
-        if (dir == "right" && player.tx < canvas.width - tileSize) {
-            x += tileSize
-        } else if (dir == "left" && player.tx > 0) {
-            x -= tileSize
-        }
-    }
-    if (getCollision({ x: x, y: y }, walls)) { return }
-
-    player.tx = x
-    player.ty = y
-    player.isMoving = true
-}
-
-
 setInterval(() => {
-    if (player.isMoving) {
-        if (Math.round(player.x) == player.tx) {
-            player.x = player.tx
-        } else {
-            player.x += Math.sign(player.tx - player.x) * (tileSize / 50)
-        }
-
-        if (Math.round(player.y) == player.ty) {
-            player.y = player.ty
-        } else {
-            player.y += Math.sign(player.ty - player.y) * (tileSize / 50)
-        }
-        if (player.y == player.ty && player.x == player.tx) {
-            player.isMoving = false
-            player.x = player.tx
-            path.push({
-                x: player.x,
-                y: player.y,
-            })
-        }
+    for (let e of Object.values(entities)) {
+        e.update()
     }
-    const collision = getCollision(player, carrots)
-    if (collision) {
-        carrots.splice(carrots.indexOf(collision), 1)
-        player.points += 1
-    }
-}
-)
+})
 setInterval(() => {
     if (cmds.length != 0) {
-        const type = cmds[0].split(":")[0]
-        const arg = cmds[0].split(":")[1]
-        if (!player.isMoving) {
-            cmds.shift()
-            if (type == "move") {
-                handleMovement(arg)
-            }
-            if (type == "say") {
-                speech(arg)
-            }
+        const command = cmds[0].split(":")
+        const type = command[0]
+        const args = command[1].split(",")
+        cmds.shift()
+        if (type == "move") {
+            entities[args[0]].handleMovement(args[1])
         }
+        if (type == "say") {
+            entities[args[0]].say(args[1])
+        }
+        if (type == "addEntity") {
+            entities[args[0]] = new Entity(args[1] * tileSize, args[2] * tileSize)
+            console.log(entities)
+        }
+
     }
 }, 500)
 
 function addCmd(cmd) {
     cmds.push(cmd)
-    console.log(cmds)
 }
 
-let speechTimeout
-function speech(text) {
-    clearTimeout(speechTimeout);
-    player.speaking = true
-    player.text = text
-    speechTimeout = setTimeout(() => {
-        player.speaking = false
-        player.text = false
-    }, 2000)
-}
 
 function reset() {
-    player.x = 0
-    player.y = 0
-    player.tx = 0
-    player.ty = 0
     cmds = []
+    entities = {}
 }
 
 function draw() {
@@ -232,32 +234,37 @@ function draw() {
         ctx.fill()
         ctx.stroke()
     }
+
     for (let carrot of carrots) {
         ctx.drawImage(carrotsprite, carrot.x, carrot.y, tileSize, tileSize)
     }
     for (let wall of walls) {
         ctx.drawImage(wallsprite, wall.x, wall.y, tileSize, tileSize)
     }
-
     ctx.setLineDash([1, 1])
+
+    for (let e of Object.values(entities)) {
+        ctx.drawImage(e.sprite, e.x, e.y, tileSize, tileSize)
+        if (e.speaking) {
+            ctx.textAlign = "left"
+            ctx.font = '24px arial';
+            const textSize = ctx.measureText(e.text)
+            ctx.fillStyle = "black"
+            const padding = 4
+            ctx.fillRect(e.x - padding, e.y - 24 * 1286 - padding, textSize.width + padding * 2, 24 * 1.286 + padding * 2)
+            ctx.fillStyle = "white"
+            ctx.fillRect(e.x, e.y - 24, textSize.width, 24 * 1.286)
+            ctx.fillStyle = "black"
+            ctx.fillText(e.text, e.x, e.y);
+        }
+    }
     ctx.fillStyle = "white"
     ctx.font = '48px arial';
     ctx.textAlign = "right"
-    ctx.drawImage(player.sprite, player.x, player.y, tileSize, tileSize)
-    ctx.fillText(player.points + "/10", 125, canvas.height - 10);
+    ctx.fillText(points + "/10", 125, canvas.height - 10);
 
-    if (player.speaking) {
-        ctx.textAlign = "left"
-        ctx.font = '24px arial';
-        const textSize = ctx.measureText(player.text)
-        console.log(textSize)
-        ctx.fillStyle = "black"
-        ctx.fillRect(player.x - 2, player.y - 26, textSize.width + 4, 24 * 1.286 + 4)
-        ctx.fillStyle = "white"
-        ctx.fillRect(player.x, player.y - 24, textSize.width, 24 * 1.286)
-        ctx.fillStyle = "black"
-        ctx.fillText(player.text, player.x, player.y);
-    }
+
+
     requestAnimationFrame(draw)
 }
 
